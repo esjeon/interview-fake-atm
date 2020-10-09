@@ -1,0 +1,15 @@
+{
+  "name": "fake-atm",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Eon S. Jeon <esjeon@hyunmu.am>",
+  "license": "ISC",
+  "devDependencies": {
+    "typescript": "^4.0.3",
+    "jest": "^26.5.2"
+  }
+}
