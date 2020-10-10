@@ -1,4 +1,3 @@
-
 export interface ICardData {
   readonly cardNumber: string;
   // readonly name: string;
@@ -9,13 +8,12 @@ export interface ICardData {
 
 export interface IAccount {
   readonly accountNo: string;
-  // readonly accountType: string;
-  // readonly balance: number;
+  readonly accountType: string;
   // ... etc ...
 }
 
 export interface IBankService {
-  verifyPIN(card: ICardData, pin: string): any;
+  verifyPIN(card: ICardData, pin: string): string | null;
 
   queryAccounts(cookie: any): IAccount[];
   queryBalance(cookie: any, account: IAccount): number;
@@ -64,7 +62,7 @@ export class ATMController {
     }
   }
 
-  private runWizard() {
+  public runWizard() {
     const card = this.machine.requestCard();
 
     const cookie = this.verifyPIN(card);
