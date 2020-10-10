@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "build": "tsc --project .",
     "test": "jest --silent"
   },
   "author": "Eon S. Jeon <esjeon@hyunmu.am>",
