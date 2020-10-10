@@ -9,7 +9,7 @@ const CARD = {
 
 const ACCOUNTS = [
   {
-    accountType: "Cheque",
+    accountType: "Chequing",
     accountNo: "123456-01-987654",
     balance: 100,
   },
@@ -136,13 +136,13 @@ class FakeMachine implements ATM.IMachine {
   }
 }
 
-test('show balance', () => {
+test('show the balance of saving account', () => {
   const balance = Math.floor(10000 * Math.random())
   const bank = new FakeBank(ACCOUNTS.map(acct => Object.assign({}, acct)));
-  (bank.accounts[0] as typeof ACCOUNTS[0]).balance = balance;
+  (bank.accounts[1] as typeof ACCOUNTS[0]).balance = balance;
 
   const machine = new FakeMachine(Object.assign({}, CARD));
-  machine.selectedAccount = 0; // saving
+  machine.selectedAccount = 1; // saving
   machine.selectedAction = ATM.AccountAction.ShowBalance;
 
   const ctrl = new ATM.ATMController(bank, machine);
@@ -151,24 +151,75 @@ test('show balance', () => {
   expect(machine.lastMessage).toBeNull();
   expect(machine.lastError).toBeNull();
   expect(machine.lastBalance).not.toBeNull();
-  if (machine.lastBalance)
+  if (machine.lastBalance) {
+    expect(machine.lastBalance[0].accountType).toBe("Saving")
     expect(machine.lastBalance[1]).toEqual(balance);
+  }
 })
 
 test('deposit to saving account', () => {
   const bank = new FakeBank(ACCOUNTS.map(acct => Object.assign({}, acct)));
-  (bank.accounts[0] as typeof ACCOUNTS[0]).balance = 1000;
+  (bank.accounts[1] as typeof ACCOUNTS[0]).balance = 1000;
 
   const machine = new FakeMachine(Object.assign({}, CARD));
-  machine.selectedAccount = 0; // saving
+  machine.selectedAccount = 1; // saving
   machine.selectedAction = ATM.AccountAction.Deposit;
   machine.collectedAmount = 500;
 
   const ctrl = new ATM.ATMController(bank, machine);
   ctrl.runWizard();
 
-  expect((bank.accounts[0] as typeof ACCOUNTS[0]).balance).toBe(1500);
+  expect((bank.accounts[1] as typeof ACCOUNTS[0]).balance).toBe(1500);
   expect(machine.lastMessage).toBeNull();
+  expect(machine.lastError).toBeNull();
+  expect(machine.lastBalance).toBeNull();
+})
+
+test('withdraw from chequing account', () => {
+  const bank = new FakeBank(ACCOUNTS.map(acct => Object.assign({}, acct)));
+  (bank.accounts[0] as typeof ACCOUNTS[0]).balance = 1000;
+
+  const machine = new FakeMachine(Object.assign({}, CARD));
+  machine.selectedAccount = 0; // cheque
+  machine.selectedAction = ATM.AccountAction.Withdraw;
+  machine.enteredAmount = 500;
+
+  const ctrl = new ATM.ATMController(bank, machine);
+  ctrl.runWizard();
+
+  expect((bank.accounts[0] as typeof ACCOUNTS[0]).balance).toBe(500);
+  expect(machine.lastMessage).toBeNull();
+  expect(machine.lastError).toBeNull();
+  expect(machine.lastBalance).toBeNull();
+})
+
+test('withdrawal fail due to low balance', () => {
+  const bank = new FakeBank(ACCOUNTS.map(acct => Object.assign({}, acct)));
+  (bank.accounts[0] as typeof ACCOUNTS[0]).balance = 100;
+
+  const machine = new FakeMachine(Object.assign({}, CARD));
+  machine.selectedAccount = 0; // cheque
+  machine.selectedAction = ATM.AccountAction.Withdraw;
+  machine.enteredAmount = 200;
+
+  const ctrl = new ATM.ATMController(bank, machine);
+  ctrl.runWizard();
+
+  expect((bank.accounts[0] as typeof ACCOUNTS[0]).balance).toBe(100);
+  expect(machine.lastMessage).not.toBeNull();
+  expect(machine.lastError).toBeNull();
+  expect(machine.lastBalance).toBeNull();
+})
+
+test('invalid PIN', () => {
+  const bank = new FakeBank(ACCOUNTS.map(acct => Object.assign({}, acct)));
+  const machine = new FakeMachine(Object.assign({}, CARD));
+  machine.enteredPIN = "wrong-PIN";
+
+  const ctrl = new ATM.ATMController(bank, machine);
+  ctrl.runWizard();
+
+  expect(machine.lastMessage).not.toBeNull();
   expect(machine.lastError).toBeNull();
   expect(machine.lastBalance).toBeNull();
 })
